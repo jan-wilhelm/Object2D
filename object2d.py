@@ -1,6 +1,10 @@
 
 FONT = pygame.font.SysFont('Arial', 30)
 
+'''Enum class for directions
+
+Values are LEFT, RIGHT, UP and DOWN and can be accessed via Direction.LEFT etc.
+'''
 class Direction:
     LEFT= (0,1)
     RIGHT= (0,-1)
@@ -9,12 +13,19 @@ class Direction:
 
     def values():
         return [Direction.LEFT, Direction.RIGHT, Direction.UP, Direction.DOWN]
-    
+
+'''Highlevel abstract class representing any kind of shape or object that can be drawn or displayed in a 2d space
+
+This is a parent class for all other 2d objects.
+It also provides all the general mathematical and logical functions that can be overridden by inheriting classes.
+'''
 class Object2D:
     
-    """
-    " Parent class for 2D objects.
-    """
+    '''Constructor for any 2d object
+    
+    The corners should be tuples, lists or arrays of two elements. Example: corners = [(1,1), (-2,4), (0,2)]
+    Color is 
+    '''
     def __init__(self, corners, color = 'White'):
         '''
         ' (x,y) is the position of the object.
@@ -38,6 +49,7 @@ class Object2D:
     ##################################################
     def getClickHandlers(self):
         return self._click_handlers
+    
     
     def addClickHandler(self, handler, index = -1):
         index = max(index, min(len(self._click_handlers), 0) )
