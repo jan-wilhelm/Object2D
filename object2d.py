@@ -14,55 +14,46 @@ class Direction:
     def values():
         return [Direction.LEFT, Direction.RIGHT, Direction.UP, Direction.DOWN]
 
-'''Highlevel abstract class representing any kind of shape or object that can be drawn or displayed in a 2d space
+class ClickType:
+    LEFT_UP = 0
+    LEFT_DOWN = 1
+    RIGHT_UP = 2
+    RIGHT_DOWN = 3
+    
 
-This is a parent class for all other 2d objects.
-It also provides all the general mathematical and logical functions that can be overridden by inheriting classes.
-'''
-class Object2D:
+class ClickHandlerReceiver:
     
-    '''Constructor for any 2d object
-    
-    The corners should be tuples, lists or arrays of two elements. Example: corners = [(1,1), (-2,4), (0,2)]
-    Color is 
-    '''
-    def __init__(self, corners, color = 'White'):
-        '''
-        ' (x,y) is the position of the object.
-        ' The default color is white.
-        '''
-        listOfCorners = []
-        for corner in corners:
-            listOfCorners.append(list(corner))
-        self._position = listOfCorners
-        self._color = color
-        self._click_handlers = []
+    def __init__(self):
+    	self._click_handlers = []
+        
+        for i in range(0,4):
+            self._click_handlers.append([])
+            
         self._mouse_drag_handlers = []
-        self._draw_handlers = []
-        self._animations = []
-        self._rotation = 0
+        self._dragging = False
         
         
         
     ##################################################
     #####       MOUSE CLICK HANDLERS          #####
     ##################################################
-    def getClickHandlers(self):
-        return self._click_handlers
+    def getClickHandlers(self, clickType):
+        return self._click_handlers[clickType]
     
-    
-    def addClickHandler(self, handler, index = -1):
-        index = max(index, min(len(self._click_handlers), 0) )
-        self._click_handlers.insert(index, handler)
+    def addClickHandler(self, handler, clickType = ClickType.LEFT_UP, index = -1):
+        index = max(index, min(len(self._click_handlers[clickType]), 0) )
+        self._click_handlers[clickType].insert(index, handler)
         return self
         
     def removeClickHandler(self, handler):
-        self._click_handlers.remove(handler)
+        for i in range(len(self._click_handlers)):
+            if handler in self.getClickHandlers(i):
+                self.getClickHandlers(i).remove(handler)
         return self
     
-    def click(self, pos):
-        for handler in self.getClickHandlers():
-            handler(self, pos)
+    def click(self, pos, clickType):
+        for handler in self.getClickHandlers(clickType):
+            handler(self, pos, clickType)
             
             
     
@@ -84,8 +75,35 @@ class Object2D:
     def mouseDrag(self, pos):
         for handler in self.getMouseDragHandlers():
             handler(self, pos)
-            
-            
+    
+    
+'''Highlevel abstract class representing any kind of shape or object that can be drawn or displayed in a 2d space
+
+This is a parent class for all other 2d objects.
+It also provides all the general mathematical and logical functions that can be overridden by inheriting classes.
+'''
+class Object2D(ClickHandlerReceiver):
+    
+    '''Constructor for any 2d object
+    
+    The corners should be tuples, lists or arrays of two elements. Example: corners = [(1,1), (-2,4), (0,2)]
+    Color is 
+    '''
+    def __init__(self, corners, color = 'White'):
+        '''
+        ' (x,y) is the position of the object.
+        ' The default color is white.
+        '''
+        ClickHandlerReceiver.__init__(self)
+        listOfCorners = []
+        for corner in corners:
+            listOfCorners.append(list(corner))
+        self._position = listOfCorners
+        self._color = color
+        self._draw_handlers = []
+        self._animations = []
+        self._rotation = 0
+                  
     
     ##################################################
     #####           DRAW HANDLERS             #####
@@ -491,7 +509,7 @@ class Animation():
         
 class Frame:
     
-    def __init__(self, name = "", width = 200, height = 200, fps = 60):
+    def __init__(self, name = "", width = 200, height = 200, fps = 60):        
         self._width = width
         self._height = height
         self._display = pygame.display.set_mode((width, height))
@@ -500,7 +518,6 @@ class Frame:
         self._key_up = []
         self._draw_handlers = []
         self._objects = []
-        self._click_handlers = []
         self._clock = pygame.time.Clock()
         self._event_handlers = {
             pygame.QUIT           : [],
